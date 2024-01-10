@@ -62,24 +62,20 @@ export class HelloWorldModel extends Observable {
   }
 
   public doStartNdefListener() {
-    this.nfc
-      .setOnNdefDiscoveredListener(
-        (data: NfcNdefData) => {
-          if (data.message) {
-            let tagMessages = [];
-            // data.message is an array of records, so:
-            data.message.forEach(record => {
-              console.log("Read record: " + JSON.stringify(record));
-              tagMessages.push(record.payloadAsString);
-            });
-            this.set("lastNdefDiscovered", "Read: " + tagMessages.join(", "));
-          }
-        },
-        {
-          stopAfterFirstRead: true,
-          scanHint: "Scan a tag, baby!"
-        }
-      )
+    this.nfc.setOnNdefDiscoveredListener((data: NfcNdefData) => {
+      if (data.message) {
+        let tagMessages = [];
+        // data.message is an array of records, so:
+        data.message.forEach(record => {
+          console.log("Read record: " + JSON.stringify(record));
+          tagMessages.push(record.payloadAsString);
+        });
+        this.set("lastNdefDiscovered", "Read: " + tagMessages.join(", "));
+      }
+    }, {
+      stopAfterFirstRead: true,
+      scanHint: "Scan a tag, baby!"
+    })
       .then(() => this.set("lastNdefDiscovered", "Listening..."))
       .catch(err => alert(err));
   }
@@ -96,53 +92,46 @@ export class HelloWorldModel extends Observable {
   }
 
   public doWriteText() {
-    this.nfc
-      .writeTag({
-        textRecords: [
-          {
-            id: [1],
-            text: "Hello!"
-          }
-        ]
-      })
-      .then(
-        () => {
-          this.set("lastNdefDiscovered", "Wrote text 'Hello!'");
-        },
-        err => {
-          console.log(err);
+    this.nfc.writeTag({
+      textRecords: [
+        {
+          id: [1],
+          text: "Hello!"
         }
-      );
+      ]
+    }, (err) => {
+      this.set("lastNdefDiscovered", "Error " + err);
+    }).then(() => {
+      this.set("lastNdefDiscovered", "Wrote text 'Hello!'");
+    }, (err) => {
+      console.log(err);
+    });
   }
 
   public doWriteUri() {
-    this.nfc
-      .writeTag({
-        uriRecords: [
-          {
-            id: [2, 5],
-            uri: "https://www.telerik.com"
-          }
-        ]
-      })
-      .then(
-        () => {
-          this.set("lastNdefDiscovered", "Wrote uri 'https://www.telerik.com");
-        },
-        err => {
-          console.log(err);
+    this.nfc.writeTag({
+      uriRecords: [
+        {
+          id: [2, 5],
+          uri: "https://www.telerik.com"
         }
-      );
+      ]
+    }, (err) => {
+      this.set("lastNdefDiscovered", "Error " + err);
+    }).then(() => {
+      this.set("lastNdefDiscovered", "Wrote uri 'https://www.telerik.com");
+    }, (err) => {
+      console.log(err);
+    });
   }
 
   public doEraseTag() {
-    this.nfc.eraseTag().then(
-      () => {
-        this.set("lastNdefDiscovered", "Tag erased");
-      },
-      err => {
-        console.log(err);
-      }
-    );
+    this.nfc.eraseTag((err) => {
+      this.set("lastNdefDiscovered", "Error " + err);
+    }).then(() => {
+      this.set("lastNdefDiscovered", "Erasing Tag");
+    }, (err) => {
+      console.log(err);
+    });
   }
 }
